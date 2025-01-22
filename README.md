@@ -6,10 +6,13 @@ I've been working around JSON Web Tokens (JWTs) a lot recently and learning the 
 
 - [x] Initialize Git repo
 - [x] Set up upstream repository on GitHub
-- [ ] Create `flake.nix`
+- [x] Create `flake.nix`
       This file should include environment dependencies. Namely this includes Zig on the latest stable version. The desired state is to be able to run `nix develop` and being dropped into a shell with all of the dependencies necessary for work on the project. I believe there is also a `nix build` command which could be configured to run `zig build ...`.
 - [ ] Write Base64 encoder / decoder (library)
+- [ ] Read Base64 RFC document
 - [ ] Read JWT RFC document
+- [ ] Figure out how to include zig as input to flake
+- [ ] Figure out `nix build` -> `zig build`
 
 ## Features
 
