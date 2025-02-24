@@ -58,7 +58,7 @@ fn encode(data: []const u8) []const u8 {
 }
 
 // TODO: Refactor. Idea single loop with bit index as counter. Math to compute all values
-// TODO: Test non divisible by 3 inputs
+// TODO: Use typeinfo of u6 rather than magical 6s
 fn split_into_sextets(bytes: []const u8, allocator: Allocator) ArrayList(u6) {
     var arr = std.ArrayList(u6).init(allocator);
 
@@ -76,11 +76,17 @@ fn split_into_sextets(bytes: []const u8, allocator: Allocator) ArrayList(u6) {
             }
         }
     }
+
+    // Pad incomplete sextet with zeros
+    if (bits_filled != 0) {
+        arr.append(acc << 6 - bits_filled) catch unreachable;
+    }
     return arr;
 }
 
 test "split_into_sextets" {
     const alloc = std.testing.allocator;
+    const expectEqual = std.testing.expectEqual;
 
     {
         const data: []const u8 = "ABC";
@@ -89,21 +95,42 @@ test "split_into_sextets" {
         // Sextets: 010000 010100 001001 000011
         const result = split_into_sextets(data, alloc);
         defer result.deinit();
-        try std.testing.expect(result.items.len == 4);
-        try std.testing.expectEqual(0b010000, result.items[0]);
-        try std.testing.expectEqual(0b010100, result.items[1]);
-        try std.testing.expectEqual(0b001001, result.items[2]);
-        try std.testing.expectEqual(0b000011, result.items[3]);
+
+        try expectEqual(4, result.items.len);
+        try expectEqual(0b010000, result.items[0]);
+        try expectEqual(0b010100, result.items[1]);
+        try expectEqual(0b001001, result.items[2]);
+        try expectEqual(0b000011, result.items[3]);
     }
     {
         const data: []const u8 = "AAC";
         const result = split_into_sextets(data, alloc);
         defer result.deinit();
-        try std.testing.expect(result.items.len == 4);
-        try std.testing.expectEqual(0b010000, result.items[0]);
-        try std.testing.expectEqual(0b010100, result.items[1]);
-        try std.testing.expectEqual(0b000101, result.items[2]);
-        try std.testing.expectEqual(0b000011, result.items[3]);
+
+        try expectEqual(4, result.items.len);
+        try expectEqual(0b010000, result.items[0]);
+        try expectEqual(0b010100, result.items[1]);
+        try expectEqual(0b000101, result.items[2]);
+        try expectEqual(0b000011, result.items[3]);
+    }
+    {
+        const data: []const u8 = "A";
+        const result = split_into_sextets(data, alloc);
+        defer result.deinit();
+
+        try expectEqual(2, result.items.len);
+        try expectEqual(0b010000, result.items[0]);
+        try expectEqual(0b010000, result.items[1]);
+    }
+    {
+        const data: []const u8 = "AB";
+        const result = split_into_sextets(data, alloc);
+        defer result.deinit();
+
+        try expectEqual(3, result.items.len);
+        try expectEqual(0b010000, result.items[0]);
+        try expectEqual(0b010100, result.items[1]);
+        try expectEqual(0b001000, result.items[2]);
     }
 }
 
