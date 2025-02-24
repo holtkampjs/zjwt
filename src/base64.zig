@@ -88,6 +88,7 @@ test "split_into_sextets" {
     const alloc = std.testing.allocator;
     const expectEqual = std.testing.expectEqual;
 
+    // Handle divisible by 3 inputs
     {
         const data: []const u8 = "ABC";
         // Hex: 0x41 0x42 0x43
@@ -113,6 +114,8 @@ test "split_into_sextets" {
         try expectEqual(0b000101, result.items[2]);
         try expectEqual(0b000011, result.items[3]);
     }
+
+    // Handle non-divisible by 3 inputs
     {
         const data: []const u8 = "A";
         const result = split_into_sextets(data, alloc);
@@ -131,6 +134,15 @@ test "split_into_sextets" {
         try expectEqual(0b010000, result.items[0]);
         try expectEqual(0b010100, result.items[1]);
         try expectEqual(0b001000, result.items[2]);
+    }
+
+    // Trivial case
+    {
+        const data: []const u8 = "";
+        const result = split_into_sextets(data, alloc);
+        defer result.deinit();
+
+        try expectEqual(0, result.items.len);
     }
 }
 
